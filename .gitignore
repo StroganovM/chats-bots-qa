@@ -3,3 +3,4 @@ __pycache__
 *.sqlite
 .venv
 .DS_Store
+.vscode
