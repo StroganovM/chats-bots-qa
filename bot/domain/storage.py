@@ -1,0 +1,24 @@
+from abc import ABC, abstractmethod
+
+
+class Storage(ABC):
+    @abstractmethod
+    def recreate_database() -> None: ...
+
+    @abstractmethod
+    def persist_update(updates: list) -> None: ...
+
+    @abstractmethod
+    def ensure_user_exists(telegram_id: int) -> None: ...
+
+    @abstractmethod
+    def clear_user_order_and_state(telegram_id: int) -> None: ...
+
+    @abstractmethod
+    def update_user_state(telegram_id: int, state: str) -> None: ...
+
+    @abstractmethod
+    def get_user(telegram_id: int) -> dict: ...
+
+    @abstractmethod
+    def update_user_order_json(telegram_id: int, order: dict) -> None: ...
