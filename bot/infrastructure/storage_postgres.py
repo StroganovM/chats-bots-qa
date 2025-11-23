@@ -11,7 +11,7 @@ load_dotenv()
 class StoragePostgres(Storage):
     def _get_connection(self):
         host = os.getenv("POSTGRES_HOST")
-        port = os.getenv("POSTGRES_PORT")
+        port = os.getenv("POSTGRES_HOST_PORT")
         user = os.getenv("POSTGRES_USER")
         password = os.getenv("POSTGRES_PASSWORD")
         database = os.getenv("POSTGRES_DATABASE")
@@ -19,7 +19,7 @@ class StoragePostgres(Storage):
         if host is None:
             raise ValueError("POSTGRES_HOST environment variable is not set")
         if port is None:
-            raise ValueError("POSTGRES_PORT environment variable is not set")
+            raise ValueError("POSTGRES__HOST_PORT environment variable is not set")
         if user is None:
             raise ValueError("POSTGRES_USER environment variable is not set")
         if password is None:
