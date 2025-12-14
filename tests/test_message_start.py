@@ -32,7 +32,7 @@ async def test_message_start_handler():
     clear_user_data_called = False
     update_user_state_called = False
 
-    async def clear_user_state_and_order(telegram_id: int) -> None:
+    async def clear_user_order_and_state(telegram_id: int) -> None:
         assert telegram_id == 12345
 
         nonlocal clear_user_data_called
@@ -58,7 +58,7 @@ async def test_message_start_handler():
 
     mock_storage = Mock(
         {
-            "clear_user_state_and_order": clear_user_state_and_order,
+            "clear_user_order_and_state": clear_user_order_and_state,
             "update_user_state": update_user_state,
             "get_user": get_user,
         }
@@ -74,5 +74,5 @@ async def test_message_start_handler():
     assert update_user_state_called
 
     assert len(send_message_calls) == 2
-    assert send_message_calls[0]["text"] == "Welcom to Pizza shop!"
+    assert send_message_calls[0]["text"] == "🍕 Welcome to Pizza shop!"
     assert send_message_calls[1]["text"] == "Please choose pizza name"
