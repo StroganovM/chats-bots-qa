@@ -36,7 +36,7 @@ class PizzaSelectionHander(Handler):
         callback_data = update["callback_query"]["data"]
 
         pizza_name = callback_data.replace("pizza_", "").replace("_", "").title()
-        
+
         await asyncio.gather(
             storage.update_user_order_json(telegram_id, {"pizza_name": pizza_name}),
             storage.update_user_state(telegram_id, "WAIT_FOR_PIZZA_SIZE"),

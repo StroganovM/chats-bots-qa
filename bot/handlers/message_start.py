@@ -47,8 +47,14 @@ class MessageStart(Handler):
                     {
                         "inline_keyboard": [
                             [
-                                {"text": "Margherita", "callback_data": "pizza_margherita"},
-                                {"text": "Pepperoni", "callback_data": "pizza_pepperoni"},
+                                {
+                                    "text": "Margherita",
+                                    "callback_data": "pizza_margherita",
+                                },
+                                {
+                                    "text": "Pepperoni",
+                                    "callback_data": "pizza_pepperoni",
+                                },
                             ],
                             [
                                 {
@@ -62,7 +68,10 @@ class MessageStart(Handler):
                             ],
                             [
                                 {"text": "Diavola", "callback_data": "pizza_diavola"},
-                                {"text": "Prosciutto", "callback_data": "pizza_prosciutto"},
+                                {
+                                    "text": "Prosciutto",
+                                    "callback_data": "pizza_prosciutto",
+                                },
                             ],
                         ]
                     },

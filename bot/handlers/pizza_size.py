@@ -63,7 +63,10 @@ class SizeSelectionHander(Handler):
                     {
                         "inline_keyboard": [
                             [
-                                {"text": "Coca-Cola", "callback_data": "drink_coca_cola"},
+                                {
+                                    "text": "Coca-Cola",
+                                    "callback_data": "drink_coca_cola",
+                                },
                                 {"text": "Sprite", "callback_data": "drink_sprite"},
                             ],
                             [
@@ -77,7 +80,10 @@ class SizeSelectionHander(Handler):
                                 },
                             ],
                             [
-                                {"text": "Without Drink", "callback_data": "drink_none"},
+                                {
+                                    "text": "Without Drink",
+                                    "callback_data": "drink_none",
+                                },
                             ],
                         ],
                     },
