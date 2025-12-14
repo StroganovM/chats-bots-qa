@@ -23,5 +23,5 @@ class EnsureUserExists(Handler):
         messenger: Messenger,
     ) -> HandlerStatus:
         telegram_id = update["message"]["from"]["id"]
-        storage.ensure_user_exists(telegram_id)
+        await storage.ensure_user_exists(telegram_id)
         return HandlerStatus.CONTINUE
