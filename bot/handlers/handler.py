@@ -1,6 +1,5 @@
 from abc import ABC, abstractmethod
 from enum import Enum
-
 from bot.domain.messenger import Messenger
 from bot.domain.storage import Storage
 
@@ -22,7 +21,7 @@ class Handler(ABC):
     ) -> bool: ...
 
     @abstractmethod
-    def handle(
+    async def handle(
         self,
         update: dict,
         state: str,
