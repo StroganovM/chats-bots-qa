@@ -68,7 +68,7 @@ postgres_stop:
 build:
 	docker build \
 	  -t $(BOT_IMAGE) \
-	  --platform linux/amd64 \
+	  --platform linux/amd64,linux/arm64 \
 	  -f Dockerfile \
 	  .
 

@@ -1,41 +1,83 @@
-import json
-import urllib.request
+import logging
 import os
+import time
+import aiohttp
+
 from dotenv import load_dotenv
 
 from bot.domain.messenger import Messenger
 
 load_dotenv()
 
+logger = logging.getLogger(__name__)
+
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="[%(asctime)s.%(msecs)03d] %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
+)
+
 
 class MessengerTelegram(Messenger):
-    def _makeRequest(self, method: str, **param) -> dict:
-        json_data = json.dumps(param).encode("utf-8")
-        request = urllib.request.Request(
-            method="POST",
-            url=f"{os.getenv("TELEGRAM_BASE_URI")}/{method}",
-            data=json_data,
-            headers={"Content-Type": "application/json"},
+    def __init__(self) -> None:
+        self._session: aiohttp.ClientSession | None = None
+
+    def _get_telegram_base_uri(self) -> str:
+        return f"{os.getenv('TELEGRAM_BASE_URI')}"
+
+    def _get_telegram_file_uri(self) -> str:
+        return f"https://api.telegram.org/file/bot{os.getenv('TELEGRAM_TOKEN')}"
+
+    async def _get_session(self) -> aiohttp.ClientSession:
+        if self._session is None or self._session.closed:
+            self._session = aiohttp.ClientSession()
+        return self._session
+
+    async def _make_request(self, method: str, **params) -> dict:
+        url = f"{self._get_telegram_base_uri()}/{method}"
+        start_time = time.time()
+        logger.info(f"[HTTP] -> POST {method}")
+
+        try:
+            session = await self._get_session()
+            async with session.post(
+                url,
+                json=params,
+                headers={"Content-Type": "application/json"},
+            ) as response:
+                response_json = await response.json()
+                assert response_json["ok"]
+                duration_ms = (time.time() - start_time) * 1000
+                logger.info(f"[HTTP] <- POST {method} - {duration_ms:.2f}ms")
+                return response_json["result"]
+        except Exception as e:
+            duration_ms = (time.time() - start_time) * 1000
+            logger.error(f"[HTTP] X POST {method} - {duration_ms:.2f}ms - Error: {e}")
+            raise
+
+    async def close(self) -> None:
+        if self._session and not self._session.closed:
+            await self._session.close()
+
+    async def send_message(self, chat_id: int, text: str, **params) -> dict:
+        return await self._make_request(
+            "sendMessage", chat_id=chat_id, text=text, **params
         )
 
-        with urllib.request.urlopen(request) as response:
-            response_body = response.read().decode("utf-8")
-            response_json = json.loads(response_body)
-            assert response_json["ok"] == True  # noqa: E712
-            return response_json["result"]
+    async def get_updates(self, **params) -> dict:
+        return await self._make_request("getUpdates", **params)
 
-    def getUpdates(self, **params) -> dict:
-        return self._makeRequest("getUpdates", **params)
-
-    def sendMessage(self, chat_id: int, text: str, **params) -> dict:
-        return self._makeRequest("sendMessage", chat_id=chat_id, text=text, **params)
-
-    def deleteMessage(self, chat_id: int, message_id: int) -> dict:
-        return self._makeRequest(
-            "deleteMessage", chat_id=chat_id, message_id=message_id
+    async def delete_message(self, chat_id: int, message_id: int) -> dict:
+        return await self._make_request(
+            "deleteMessage",
+            chat_id=chat_id,
+            message_id=message_id,
         )
 
-    def answerCallbackQuery(self, callback_query_id: str, **params) -> dict:
-        return self._makeRequest(
-            "answerCallbackQuery", callback_query_id=callback_query_id, **params
+    async def answer_callback_query(self, callback_query_id: str, **params) -> dict:
+        return await self._make_request(
+            "answerCallbackQuery",
+            callback_query_id=callback_query_id,
+            **params,
         )

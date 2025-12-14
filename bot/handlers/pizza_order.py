@@ -1,4 +1,5 @@
-from bot.handlers.hander import Handler, HandlerStatus
+import asyncio
+from bot.handlers.handler import Handler, HandlerStatus
 from bot.domain.messenger import Messenger
 from bot.domain.storage import Storage
 
@@ -21,7 +22,7 @@ class ApproveOrderHander(Handler):
         callback_data = update["callback_query"]["data"]
         return callback_data.startswith("order_")
 
-    def handle(
+    async def handle(
         self,
         update: dict,
         state: str,
@@ -32,11 +33,13 @@ class ApproveOrderHander(Handler):
         telegram_id = update["callback_query"]["from"]["id"]
         callback_data = update["callback_query"]["data"]
 
-        storage.update_user_state(telegram_id, "ORDER_FINISHED")
-        messenger.answerCallbackQuery(update["callback_query"]["id"])
-        messenger.deleteMessage(
-            chat_id=update["callback_query"]["message"]["chat"]["id"],
-            message_id=update["callback_query"]["message"]["message_id"],
+        await asyncio.gather(
+            storage.update_user_state(telegram_id, "ORDER_FINISHED"),
+            messenger.answer_callback_query(update["callback_query"]["id"]),
+            messenger.delete_message(
+                chat_id=update["callback_query"]["message"]["chat"]["id"],
+                message_id=update["callback_query"]["message"]["message_id"],
+            ),
         )
 
         if callback_data == "order_approve":
@@ -52,10 +55,12 @@ class ApproveOrderHander(Handler):
             Thank you for your order!
             Send /start to new order."""
 
-            messenger.sendMessage(
-                chat_id=update["callback_query"]["message"]["chat"]["id"],
-                text=order_summary,
-                parse_mode="Markdown",
+            await asyncio.gather(
+                messenger.send_message(
+                    chat_id=update["callback_query"]["message"]["chat"]["id"],
+                    text=order_summary,
+                    parse_mode="Markdown",
+                ),
             )
         elif callback_data == "order_revoke":
             storage.clear_user_order_and_state(telegram_id)
@@ -63,10 +68,12 @@ class ApproveOrderHander(Handler):
             **Your order was revoked!**
             **Send /start to new order.**"""
 
-            messenger.sendMessage(
-                chat_id=update["callback_query"]["message"]["chat"]["id"],
-                text=order_summary,
-                parse_mode="Markdown",
+            await asyncio.gather(
+                messenger.send_message(
+                    chat_id=update["callback_query"]["message"]["chat"]["id"],
+                    text=order_summary,
+                    parse_mode="Markdown",
+                ),
             )
 
         return HandlerStatus.STOP

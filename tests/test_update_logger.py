@@ -1,10 +1,13 @@
+import pytest
+
 from bot.dispatcher import Dispatcher
 from bot.handlers.database_logger import DB_Logger
 
 from tests.mock import Mock
 
 
-def test_update_database_logger_execution():
+@pytest.mark.asyncio
+async def test_database_logger_handler():
     test_update = {
         "update_id": 123456789,
         "message": {
@@ -12,28 +15,28 @@ def test_update_database_logger_execution():
             "from": {
                 "id": 12345,
                 "is_bot": False,
-                "first_name": "Test",
-                "username": "testuser",
+                "first_name": "DBTest",
+                "username": "dbtestuser",
             },
             "chat": {
                 "id": 12345,
-                "first_name": "Test",
-                "username": "testuser",
+                "first_name": "DBTest",
+                "username": "dbtestuser",
                 "type": "private",
             },
             "date": 1640995200,
-            "text": "Hello, this is a test message",
+            "text": "Hi, this is a db test message",
         },
     }
 
     persist_update_called = False
 
-    def persist_update(update: dict) -> None:
+    async def persist_update(update: dict) -> None:
         nonlocal persist_update_called
         persist_update_called = True
         assert update == test_update
 
-    def get_user(telegram_id: int) -> dict | None:
+    async def get_user(telegram_id: int) -> dict | None:
         assert telegram_id == 12345
         return None
 
@@ -46,8 +49,8 @@ def test_update_database_logger_execution():
     mock_messenger = Mock({})
 
     dispatcher = Dispatcher(mock_storage, mock_messenger)
-    update_logger = DB_Logger()
-    dispatcher.add_handler(update_logger)
-    dispatcher.dispatch(test_update)
+    db_logger = DB_Logger()
+    dispatcher.add_handlers(db_logger)
+    await dispatcher.dispatch(test_update)
 
     assert persist_update_called

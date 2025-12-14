@@ -1,6 +1,7 @@
+import asyncio
 import json
 
-from bot.handlers.hander import Handler, HandlerStatus
+from bot.handlers.handler import Handler, HandlerStatus
 from bot.domain.messenger import Messenger
 from bot.domain.storage import Storage
 
@@ -23,7 +24,7 @@ class PizzaSelectionHander(Handler):
         callback_data = update["callback_query"]["data"]
         return callback_data.startswith("pizza_")
 
-    def handle(
+    async def handle(
         self,
         update: dict,
         state: str,
@@ -35,29 +36,35 @@ class PizzaSelectionHander(Handler):
         callback_data = update["callback_query"]["data"]
 
         pizza_name = callback_data.replace("pizza_", "").replace("_", "").title()
-        storage.update_user_order_json(telegram_id, {"pizza_name": pizza_name})
-        storage.update_user_state(telegram_id, "WAIT_FOR_PIZZA_SIZE")
-        messenger.answerCallbackQuery(update["callback_query"]["id"])
-        messenger.deleteMessage(
-            chat_id=update["callback_query"]["message"]["chat"]["id"],
-            message_id=update["callback_query"]["message"]["message_id"],
-        )
-        messenger.sendMessage(
-            chat_id=update["callback_query"]["message"]["chat"]["id"],
-            text="Please select pizza size",
-            reply_markup=json.dumps(
-                {
-                    "inline_keyboard": [
-                        [
-                            {"text": "S (25cm)", "callback_data": "size_small"},
-                            {"text": "M (30cm)", "callback_data": "size_medium"},
+        
+        await asyncio.gather(
+            storage.update_user_order_json(telegram_id, {"pizza_name": pizza_name}),
+            storage.update_user_state(telegram_id, "WAIT_FOR_PIZZA_SIZE"),
+            messenger.answer_callback_query(update["callback_query"]["id"]),
+        ),
+
+        await asyncio.gather(
+            messenger.delete_message(
+                chat_id=update["callback_query"]["message"]["chat"]["id"],
+                message_id=update["callback_query"]["message"]["message_id"],
+            ),
+            messenger.send_message(
+                chat_id=update["callback_query"]["message"]["chat"]["id"],
+                text="Please select pizza size",
+                reply_markup=json.dumps(
+                    {
+                        "inline_keyboard": [
+                            [
+                                {"text": "S (25cm)", "callback_data": "size_small"},
+                                {"text": "M (30cm)", "callback_data": "size_medium"},
+                            ],
+                            [
+                                {"text": "L (35cm)", "callback_data": "size_large"},
+                                {"text": "XL (40cm)", "callback_data": "size_xl"},
+                            ],
                         ],
-                        [
-                            {"text": "L (35cm)", "callback_data": "size_large"},
-                            {"text": "XL (40cm)", "callback_data": "size_xl"},
-                        ],
-                    ],
-                },
+                    },
+                ),
             ),
         )
         return HandlerStatus.STOP

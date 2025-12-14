@@ -1,4 +1,4 @@
-from bot.handlers.hander import Handler
+from bot.handlers.handler import Handler
 from bot.handlers.database_logger import DB_Logger
 from bot.handlers.ensure_user_exists import EnsureUserExists
 from bot.handlers.message_start import MessageStart
